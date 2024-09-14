@@ -1,0 +1,44 @@
+import pandas as pd
+import numpy as np
+
+# Create a sample dataset
+data = {
+    'Movie1': [5, 4, 0, 0, 1],
+    'Movie2': [3, 0, 0, 2, 0],
+    'Movie3': [0, 0, 3, 4, 4],
+    'Movie4': [1, 1, 4, 5, 4],
+    'Movie5': [4, 2, 0, 1, 0]
+}
+
+# Create a DataFrame
+df = pd.DataFrame(data, index=['User1', 'User2', 'User3', 'User4', 'User5'])
+
+# Calculate the similarity matrix
+
+user_similarity_df = pd.DataFrame( index=df.index, columns=df.index)
+
+# Function to get movie recommendations for a user
+def get_recommendations(user, df, user_similarity_df, n_recommendations=3):
+    user_ratings = df.loc[user]
+    similar_users = user_similarity_df[user].sort_values(ascending=False)
+    
+    recommendations = pd.Series(dtype=float)
+    
+    for similar_user in similar_users.index:
+        if similar_user == user:
+            continue
+        similar_user_ratings = df.loc[similar_user]
+        for movie, rating in similar_user_ratings.items():
+            if user_ratings[movie] == 0 and rating > 0:
+                if movie not in recommendations:
+                    recommendations[movie] = rating
+                else:
+                    recommendations[movie] += rating
+    
+    recommendations = recommendations.sort_values(ascending=False).head(n_recommendations)
+    return recommendations
+
+# Example: Get recommendations for User1
+recommendations = get_recommendations('User1', df, user_similarity_df)
+print("Recommendations for User1:")
+print(recommendations)
